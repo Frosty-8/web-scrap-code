@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Sunglass Web Scraper Documentation</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #ffffff;
+            margin-bottom: 20px;
+            position: relative;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        }
+        h1:hover, h2:hover, h3:hover {
+            transform: translateX(10px);
+            opacity: 0.9;
+        }
+        p, li {
+            margin-bottom: 15px;
+        }
+        code {
+            background-color: #2d2d2d;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ff79c6;
+        }
+        pre {
+            background-color: #2d2d2d;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease-in-out;
+        }
+        pre:hover {
+            transform: scale(1.02);
+        }
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff79c6;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, transform 0.2s ease;
+        }
+        .copy-btn:hover {
+            background-color: #ff5555;
+            transform: scale(1.1);
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #252525;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        a {
+            color: #8be9fd;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #50fa7b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Amazon Sunglass Web Scraper Documentation</h1>
+        
+        <div class="section">
+            <h2>Project Overview</h2>
+            <p>
+                The Amazon Sunglass Web Scraper is a Python-based project designed to demonstrate web scraping techniques by extracting product information from Amazon India's search results for sunglasses. This project showcases how to use web scraping tools to collect structured data from e-commerce websites, handling dynamic content, pagination, and data storage.
+            </p>
+            <p><strong>Web Scraping Focus:</strong></p>
+            <ul>
+                <li>Navigates multiple pages of Amazon search results using Selenium for browser automation.</li>
+                <li>Parses HTML content with BeautifulSoup to extract product details like titles, images, prices, ratings, and URLs.</li>
+                <li>Manages dynamic content loading by incorporating delays to ensure data is fully rendered.</li>
+                <li>Stores scraped data in a CSV file using pandas for easy analysis.</li>
+                <li>Utilizes a Makefile to streamline project setup and execution.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Technical Details</h2>
+            <p>
+                This project leverages several Python libraries to perform web scraping efficiently. Below is an overview of the tools and their roles:
+            </p>
+            <ul>
+                <li><code>selenium</code>: Automates browser interactions to load dynamic content and navigate pages.</li>
+                <li><code>bs4</code> (BeautifulSoup): Parses HTML to extract specific elements like product titles and prices.</li>
+                <li><code>pandas</code>: Structures scraped data into a DataFrame and exports it to CSV.</li>
+                <li><code>tqdm</code>: Displays a progress bar for scraping multiple pages.</li>
+                <li><code>requests</code> and <code>numpy</code>: Included as dependencies, though not directly used in the main script.</li>
+            </ul>
+            <p>
+                The script targets the Amazon India search URL for "sunglass," scraping 7 pages and collecting approximately 390 products. It handles cases where ratings or prices may be missing by using conditional checks.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>Code Structure</h2>
+            <h3>1. Main Script (app.py)</h3>
+            <p>
+                The core web scraping logic is implemented in <code>app.py</code>. It initializes a Chrome WebDriver, navigates search pages, extracts product data, and saves it to a CSV file.
+            </p>
+            <pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+import pandas as pd
+from selenium import webdriver
+from bs4 import BeautifulSoup
+import time
+from tqdm import tqdm
+
+driver = webdriver.Chrome()
+
+driver.get("https://www.amazon.in/s?k=sunglass&crid=389J7CS8RFIK9&sprefix=sungla%2Caps%2C356&ref=nb_sb_noss_2")
+
+html_data = BeautifulSoup(driver.page_source,"html.parser")
+
+no_of_pages = int(html_data.find("span",{'class':'s-pagination-item s-pagination-disabled'}).text)
+
+products = html_data.find_all("div",{'data-component-type':'s-search-result'})
+
+titles = []
+images = []
+prices = []
+ratings = []
+urls = []
+
+for i in tqdm(range(no_of_pages)):
+    url = "https://www.amazon.in/s?k=sunglass&crid=389J7CS8RFIK9&sprefix=sungla%2Caps%2C356&ref=nb_sb_noss_2"+"&page="+str(i+1)
+    driver.get(url)
+    time.sleep(3)
+    html_data = BeautifulSoup(driver.page_source,"html.parser")
+    products = html_data.find_all("div",{'data-component-type':'s-search-result'})
+    for product in products:
+        title = product.h2.find("span").text
+        titles.append(title)
+
+        img = product.find("img",{'class':'s-image'})['src']
+        images.append(img)
+
+        rating = product.find('span',{'class':'a-icon-alt'})
+        if rating is not None:
+            rating = rating.text
+            rating = float(rating[0:4])
+        ratings.append(rating)
+
+        price = product.find('span',{'class':'a-price-whole'})
+        if price is not None:
+            price = '₹'+price.text
+        prices.append(price)
+
+        product_link = 'https://www.amazon.in'+ product.find('a',{'class':'a-link-normal s-line-clamp-2 s-link-style a-text-normal'})['href']
+        urls.append(product_link)
+
+data = pd.DataFrame({
+    'titles':titles,
+    'images':images,
+    'prices':prices,
+    'ratings':ratings,
+    'purls':urls
+})
+
+data.to_csv('sunglass.csv',index=False)
+            </pre>
+
+            <h3>2. Makefile</h3>
+            <p>
+                The Makefile provides commands to set up a virtual environment, install dependencies, run the script, and clean up temporary files, enhancing the project's usability.
+            </p>
+            <pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+# Variables
+PYTHON = python
+PIP = pip
+VENV = venv
+MAIN_SCRIPT = app.py
+
+.PHONY: all install run clean
+
+all: install run
+
+install:
+	$(PYTHON) -m venv $(VENV)
+	$(VENV)\Scripts\pip install --upgrade pip
+	$(VENV)\Scripts\pip install -r requirements.txt
+
+install-lib:
+	$(VENV)\Scripts\pip install -r requirements.txt
+
+run:
+	powershell -Command "& { . $(VENV)\Scripts\Activate.ps1; python $(MAIN_SCRIPT) }"
+
+clean:
+	if exist $(VENV) rmdir /s /q $(VENV)
+	if exist __pycache__ rmdir /s /q __pycache__
+	del /s /q *.pyc *.pyo 2>nul
+            </pre>
+
+            <h3>3. Requirements (requirements.txt)</h3>
+            <p>
+                Lists the Python libraries required for the web scraping project.
+            </p>
+            <pre>
+                <button class="copy-btn" onclick="copyCode(this)">Copy Code</button>
+selenium
+bs4
+pandas
+requests
+numpy
+tqdm
+            </pre>
+        </div>
+
+        <div class="section">
+            <h2>Setup Instructions</h2>
+            <p>
+                To run the web scraper, follow these steps:
+            </p>
+            <ol>
+                <li>Install <a href="https://www.python.org/downloads/">Python</a> and <a href="https://www.google.com/chrome/">Google Chrome</a>.</li>
+                <li>Download and configure <a href="https://chromedriver.chromium.org/downloads">ChromeDriver</a> matching your Chrome version.</li>
+                <li>Clone or download the project files.</li>
+                <li>Run <code>make install</code> in the terminal to create a virtual environment and install dependencies.</li>
+                <li>Run <code>make run</code> to execute the scraper.</li>
+                <li>Check the generated <code>sunglass.csv</code> file for the scraped data.</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2>Output</h2>
+            <p>
+                The scraper produces a CSV file (<code>sunglass.csv</code>) with the following columns:
+            </p>
+            <ul>
+                <li><code>titles</code>: Sunglass product names.</li>
+                <li><code>images</code>: URLs to product images.</li>
+                <li><code>prices</code>: Prices in Indian Rupees (₹).</li>
+                <li><code>ratings</code>: Customer ratings out of 5 (or None if unavailable).</li>
+                <li><code>purls</code>: Direct URLs to product pages.</li>
+            </ul>
+            <p>
+                The script processes 7 pages, yielding around 390 product entries, depending on Amazon's search results at runtime.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>Ethical Considerations</h2>
+            <p>
+                Web scraping should be conducted responsibly:
+            </p>
+            <ul>
+                <li>Respect Amazon's <a href="https://www.amazon.com/gp/help/customer/display.html?nodeId=GLSBYFE9MGKKQXXM">terms of service</a> and robots.txt.</li>
+                <li>Use delays (e.g., <code>time.sleep(3)</code>) to avoid overwhelming the server.</li>
+                <li>Limit scraping frequency to minimize server load.</li>
+                <li>Use scraped data for personal or educational purposes only, avoiding commercial exploitation without permission.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function copyCode(button) {
+            const code = button.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                setTimeout(() => {
+                    button.textContent = 'Copy Code';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
